@@ -149,6 +149,20 @@ function useMotionStyles() {
   }, []);
 }
 
+// Shows the decorative phone-frame (border, shadow, centered on a neutral background) only on
+// screens wide enough that it reads as a mockup. On an actual phone, the same link should fill
+// the real screen edge-to-edge instead of showing a smaller bordered rectangle inside the
+// device's own screen.
+function useIsWideViewport() {
+  const [isWide, setIsWide] = useState(() => (typeof window !== "undefined" ? window.innerWidth > 480 : true));
+  useEffect(() => {
+    const onResize = () => setIsWide(window.innerWidth > 480);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return isWide;
+}
+
 /* ---------------------------------------------------------------
    MOCK DATA
 ----------------------------------------------------------------*/
@@ -6279,6 +6293,7 @@ function NavBtn({ t, active, onClick }) {
 export default function App() {
   useGoogleFonts();
   useMotionStyles();
+  const isWide = useIsWideViewport();
   const [showWelcome, setShowWelcome] = useState(true);
   const [tab, setTab] = useState("home");
   const [member, setMember] = useState(null);
@@ -6347,17 +6362,28 @@ export default function App() {
   };
 
   return (
-    <div className="w-full min-h-[720px] flex items-center justify-center py-6" style={{ background: "#E9E6DC" }}>
+    <div
+      className="w-full min-h-[720px] flex items-center justify-center"
+      style={{ background: isWide ? "#E9E6DC" : C.bg, padding: isWide ? 24 : 0 }}
+    >
       <div
         className="relative overflow-hidden"
-        style={{
-          width: 390,
-          height: 780,
-          background: C.bg,
-          borderRadius: 40,
-          border: `8px solid #05070E`,
-          boxShadow: "0 30px 60px rgba(0,0,0,0.5)",
-        }}
+        style={
+          isWide
+            ? {
+                width: 390,
+                height: 780,
+                background: C.bg,
+                borderRadius: 40,
+                border: `8px solid #05070E`,
+                boxShadow: "0 30px 60px rgba(0,0,0,0.5)",
+              }
+            : {
+                width: "100vw",
+                height: "100vh",
+                background: C.bg,
+              }
+        }
       >
         {showWelcome ? (
           <WelcomeScreen onGetStarted={() => setShowWelcome(false)} />
